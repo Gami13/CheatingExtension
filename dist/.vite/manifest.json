@@ -1,0 +1,52 @@
+{
+  "../../../../../@crx/manifest": {
+    "file": "assets/crx-manifest.js-B2oY1Cas.js",
+    "name": "crx-manifest.js",
+    "src": "../../../../../@crx/manifest",
+    "isEntry": true
+  },
+  "_chunk-CnxtX0uT.js": {
+    "file": "assets/chunk-CnxtX0uT.js",
+    "name": "chunk"
+  },
+  "_config-Dk7bOfwz.js": {
+    "file": "assets/config-Dk7bOfwz.js",
+    "name": "config",
+    "imports": [
+      "_chunk-CnxtX0uT.js"
+    ]
+  },
+  "_content.ts-loader-BXVmT8fP.js": {
+    "file": "assets/content.ts-loader-BXVmT8fP.js",
+    "src": "_content.ts-loader-BXVmT8fP.js"
+  },
+  "popup.html": {
+    "file": "assets/popup.html-C7-jid3r.js",
+    "name": "popup.html",
+    "src": "popup.html",
+    "isEntry": true,
+    "imports": [
+      "_chunk-CnxtX0uT.js"
+    ]
+  },
+  "src/background.ts": {
+    "file": "assets/background.ts-P2AEdFcp.js",
+    "name": "background.ts",
+    "src": "src/background.ts",
+    "isEntry": true,
+    "imports": [
+      "_chunk-CnxtX0uT.js",
+      "_config-Dk7bOfwz.js"
+    ]
+  },
+  "src/content.ts": {
+    "file": "assets/content.ts-DLuEwxzt.js",
+    "name": "content.ts",
+    "src": "src/content.ts",
+    "isEntry": true,
+    "imports": [
+      "_chunk-CnxtX0uT.js",
+      "_config-Dk7bOfwz.js"
+    ]
+  }
+}
