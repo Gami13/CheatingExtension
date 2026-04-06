@@ -1,6 +1,11 @@
 import { CONFIG } from "./config";
 
-const tabAnswers: { [tabId: number]: string } = {};
+interface CachedContent {
+  answer: string;
+  explanation: string;
+}
+
+const tabAnswers: { [tabId: number]: CachedContent } = {};
 
 // Clean up answered cached when a tab is closed or navigated
 chrome.tabs.onRemoved.addListener((tabId) => {
@@ -13,7 +18,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   }
 });
 
-async function fetchGeminiAnswer(questionText: string, apiKey: string): Promise<string | null> {
+async function fetchGeminiAnswer(questionText: string, apiKey: string): Promise<CachedContent | null> {
   const url = `${CONFIG.GEMINI.API_URL}${CONFIG.GEMINI.MODEL}:generateContent?key=${apiKey}`;
   
   const response = await fetch(url, {
@@ -33,8 +38,12 @@ async function fetchGeminiAnswer(questionText: string, apiKey: string): Promise<
               type: "STRING",
               description: "The exact short text to type as the answer.",
             },
+            explanation: {
+              type: "STRING",
+              description: "A detailed explanation of why the answer is correct.",
+            },
           },
-          required: ["answer"],
+          required: ["answer", "explanation"],
         },
       },
     }),
@@ -52,7 +61,13 @@ async function fetchGeminiAnswer(questionText: string, apiKey: string): Promise<
 
   try {
     const parsed = JSON.parse(rawText);
-    return parsed.answer?.trim() || null;
+    if (parsed.answer && parsed.explanation) {
+      return {
+        answer: parsed.answer.trim(),
+        explanation: parsed.explanation.trim()
+      };
+    }
+    return null;
   } catch (e) {
     console.error("Failed to parse JSON response:", rawText);
     return null;
@@ -63,9 +78,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getAnswer") {
     const tabId = sender.tab?.id;
     if (tabId && tabAnswers[tabId]) {
-      sendResponse({ answer: tabAnswers[tabId] });
+      sendResponse({ answer: tabAnswers[tabId].answer, explanation: tabAnswers[tabId].explanation });
     } else {
-      sendResponse({ answer: null });
+      sendResponse({ answer: null, explanation: null });
     }
     return false;
   }
@@ -90,17 +105,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
 
       try {
-        const answer = await fetchGeminiAnswer(questionText, apiKey);
-        if (answer) {
-          tabAnswers[tabId] = answer;
-          sendResponse({ answer, error: null });
+        const content = await fetchGeminiAnswer(questionText, apiKey);
+        if (content) {
+          tabAnswers[tabId] = content;
+          sendResponse({ answer: content.answer, explanation: content.explanation, error: null });
         } else {
-          sendResponse({ answer: null, error: "Empty response from API." });
+          sendResponse({ answer: null, explanation: null, error: "Empty response from API." });
         }
       } catch (error: any) {
         console.error("Gemini API Error:", error);
         sendResponse({
           answer: null,
+          explanation: null,
           error: error.message || "Error communicating with API.",
         });
       }

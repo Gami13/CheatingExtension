@@ -9,16 +9,16 @@
     "file": "assets/chunk-CnxtX0uT.js",
     "name": "chunk"
   },
-  "_config-Dk7bOfwz.js": {
-    "file": "assets/config-Dk7bOfwz.js",
+  "_config-DSlncnU2.js": {
+    "file": "assets/config-DSlncnU2.js",
     "name": "config",
     "imports": [
       "_chunk-CnxtX0uT.js"
     ]
   },
-  "_content.ts-loader-BXVmT8fP.js": {
-    "file": "assets/content.ts-loader-BXVmT8fP.js",
-    "src": "_content.ts-loader-BXVmT8fP.js"
+  "_content.ts-loader-CcPMRbPs.js": {
+    "file": "assets/content.ts-loader-CcPMRbPs.js",
+    "src": "_content.ts-loader-CcPMRbPs.js"
   },
   "popup.html": {
     "file": "assets/popup.html-C7-jid3r.js",
@@ -30,23 +30,23 @@
     ]
   },
   "src/background.ts": {
-    "file": "assets/background.ts-P2AEdFcp.js",
+    "file": "assets/background.ts-CK-4fVOc.js",
     "name": "background.ts",
     "src": "src/background.ts",
     "isEntry": true,
     "imports": [
       "_chunk-CnxtX0uT.js",
-      "_config-Dk7bOfwz.js"
+      "_config-DSlncnU2.js"
     ]
   },
   "src/content.ts": {
-    "file": "assets/content.ts-DLuEwxzt.js",
+    "file": "assets/content.ts-tl-GZH65.js",
     "name": "content.ts",
     "src": "src/content.ts",
     "isEntry": true,
     "imports": [
       "_chunk-CnxtX0uT.js",
-      "_config-Dk7bOfwz.js"
+      "_config-DSlncnU2.js"
     ]
   }
 }

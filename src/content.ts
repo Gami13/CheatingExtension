@@ -1,28 +1,47 @@
 import { CONFIG } from "./config";
 
 let cachedAnswer: string | null = null;
+let cachedExplanation: string | null = null;
 let typingIndex: number = 0;
 let rightAltPressed: boolean = false;
+let leftAltPressed: boolean = false;
 
 class OverlayController {
   private static el: HTMLDivElement | null = null;
 
-  static update() {
+  static update(showLong: boolean = false) {
+    if (window !== window.top) return;
+
     if (!this.el) {
       this.el = document.createElement("div");
       Object.assign(this.el.style, CONFIG.UI.OVERLAY);
+      this.el.style.opacity = CONFIG.UI.OVERLAY.hiddenOpacity;
+      // Give explanation view more text wrapping support
+      this.el.style.maxWidth = "80vw";
+      this.el.style.whiteSpace = "pre-wrap";
       if (document.body) document.body.appendChild(this.el);
     }
     if (this.el) {
-      this.el.innerText = cachedAnswer || "";
+      this.el.innerText = (showLong ? cachedExplanation : cachedAnswer) || "";
     }
   }
 
-  static toggleVisibility(show: boolean) {
+  static toggleVisibility(show: boolean, showLong: boolean = false) {
+    if (window !== window.top) {
+      window.parent.postMessage({ stealthToggle: true, show, showLong }, "*");
+      return;
+    }
+
     if (!this.el) return;
-    const targetOpacity = show ? CONFIG.UI.OVERLAY.visibleOpacity : CONFIG.UI.OVERLAY.hiddenOpacity;
+    this.update(showLong);
+
+    const targetOpacity = show
+      ? CONFIG.UI.OVERLAY.visibleOpacity
+      : CONFIG.UI.OVERLAY.hiddenOpacity;
     if (show && this.el.style.opacity !== targetOpacity) {
-      console.log(`[Stealth Ext] OVERLAY VISIBLE: opacity set to ${targetOpacity}! Cached Answer:`, cachedAnswer);
+      console.log(
+        `[Stealth Ext] OVERLAY VISIBLE: opacity set to ${targetOpacity}!`,
+      );
     }
     this.el.style.opacity = targetOpacity;
   }
@@ -38,7 +57,8 @@ function pollForAnswer() {
     if (response && response.answer) {
       console.log("[Stealth Ext/IFrame] Answer pulled from background!");
       cachedAnswer = response.answer;
-      OverlayController.update();
+      cachedExplanation = response.explanation;
+      OverlayController.update(leftAltPressed);
     } else {
       setTimeout(pollForAnswer, CONFIG.TIMING.POLL_INTERVAL_MS);
     }
@@ -56,8 +76,10 @@ function extractAndFetch() {
   if (!questionText) return;
 
   let fullPrompt = questionText;
-  const answersEls = document.querySelectorAll(CONFIG.DOM.MULTIPLE_CHOICE_ANSWER);
-  
+  const answersEls = document.querySelectorAll(
+    CONFIG.DOM.MULTIPLE_CHOICE_ANSWER,
+  );
+
   if (answersEls.length > 0) {
     fullPrompt += "\n\nAvailable Answers:\n";
     answersEls.forEach((el) => {
@@ -71,26 +93,35 @@ function extractAndFetch() {
     { action: "fetchAnswer", questionText: fullPrompt },
     (response) => {
       if (chrome.runtime.lastError) {
-        console.error("[Stealth Ext] Failed to reach background script:", chrome.runtime.lastError);
+        console.error(
+          "[Stealth Ext] Failed to reach background script:",
+          chrome.runtime.lastError,
+        );
         setTimeout(pollForAnswer, CONFIG.TIMING.POLL_INTERVAL_MS);
         return;
       }
 
       if (response && response.answer) {
-        console.log("[Stealth Ext] Answer cached remotely via background script!");
+        console.log(
+          "[Stealth Ext] Answer cached remotely via background script!",
+        );
         cachedAnswer = response.answer;
-        OverlayController.update();
+        cachedExplanation = response.explanation;
+        OverlayController.update(leftAltPressed);
       } else {
         pollForAnswer();
       }
-    }
+    },
   );
 
   setTimeout(pollForAnswer, CONFIG.TIMING.INITIAL_POLL_DELAY_MS);
 }
 
 function insertCharacter(char: string) {
-  const activeElement = document.activeElement as HTMLElement | HTMLInputElement | HTMLTextAreaElement;
+  const activeElement = document.activeElement as
+    | HTMLElement
+    | HTMLInputElement
+    | HTMLTextAreaElement;
   if (!activeElement) return;
 
   if (
@@ -98,7 +129,10 @@ function insertCharacter(char: string) {
     (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA")
   ) {
     const el = activeElement as HTMLInputElement | HTMLTextAreaElement;
-    if (document.execCommand && document.execCommand("insertText", false, char)) {
+    if (
+      document.execCommand &&
+      document.execCommand("insertText", false, char)
+    ) {
       // Executed seamlessly
     } else {
       const start = el.selectionStart || 0;
@@ -129,16 +163,14 @@ function initKeyListeners() {
   window.addEventListener(
     "keydown",
     (e: KeyboardEvent) => {
+      if (e.code === "AltLeft") leftAltPressed = true;
       if (e.code === CONFIG.KEYS.STEALTH_TYPING) {
         rightAltPressed = true;
         e.preventDefault();
       }
 
       const showOverlay = e.ctrlKey && e.shiftKey;
-      if (showOverlay) {
-        OverlayController.update();
-      }
-      OverlayController.toggleVisibility(showOverlay);
+      OverlayController.toggleVisibility(showOverlay, leftAltPressed);
     },
     { capture: true, passive: false },
   );
@@ -146,13 +178,14 @@ function initKeyListeners() {
   window.addEventListener(
     "keyup",
     (e: KeyboardEvent) => {
+      if (e.code === "AltLeft") leftAltPressed = false;
       if (e.code === CONFIG.KEYS.STEALTH_TYPING) {
         rightAltPressed = false;
         e.preventDefault();
       }
 
       const showOverlay = e.ctrlKey && e.shiftKey;
-      OverlayController.toggleVisibility(showOverlay);
+      OverlayController.toggleVisibility(showOverlay, leftAltPressed);
     },
     { capture: true, passive: false },
   );
@@ -172,7 +205,9 @@ function initKeyListeners() {
 
           if (typingIndex < cachedAnswer.length) {
             const charToType = cachedAnswer[typingIndex];
-            console.log(`[Stealth Ext] Injecting: ${charToType} at index ${typingIndex}`);
+            console.log(
+              `[Stealth Ext] Injecting: ${charToType} at index ${typingIndex}`,
+            );
             insertCharacter(charToType);
             typingIndex++;
           } else {
@@ -198,3 +233,11 @@ if (document.readyState === "loading") {
   extractAndFetch();
 }
 initKeyListeners();
+
+if (window === window.top) {
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.stealthToggle) {
+      OverlayController.toggleVisibility(event.data.show, event.data.showLong);
+    }
+  });
+}

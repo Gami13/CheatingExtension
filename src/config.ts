@@ -2,8 +2,8 @@ export const CONFIG = {
   UI: {
     OVERLAY: {
       position: "fixed",
-      bottom: "auto",
-      top: "8px",
+      bottom: "8px",
+      top: "auto",
       left: "8px",
       right: "auto",
       fontSize: "10px",
@@ -11,7 +11,7 @@ export const CONFIG = {
       zIndex: "2147483647",
       fontFamily: "monospace",
       letterSpacing: "-0.5px",
-      visibleOpacity: "0.10",
+      visibleOpacity: "0.075",
       hiddenOpacity: "0",
     },
   },
