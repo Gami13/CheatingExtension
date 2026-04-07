@@ -1,5 +1,9 @@
 import { CONFIG } from "./config";
 
+const script = document.createElement("script");
+script.src = chrome.runtime.getURL("./focus.js");
+document.head.appendChild(script);
+
 let cachedAnswer: string | null = null;
 let cachedExplanation: string | null = null;
 let typingIndex: number = 0;
@@ -160,7 +164,7 @@ function insertCharacter(char: string) {
 }
 
 function initKeyListeners() {
-  window.addEventListener(
+  document.addEventListener(
     "keydown",
     (e: KeyboardEvent) => {
       if (e.code === "AltLeft") leftAltPressed = true;
@@ -175,7 +179,7 @@ function initKeyListeners() {
     { capture: true, passive: false },
   );
 
-  window.addEventListener(
+  document.addEventListener(
     "keyup",
     (e: KeyboardEvent) => {
       if (e.code === "AltLeft") leftAltPressed = false;
@@ -190,7 +194,7 @@ function initKeyListeners() {
     { capture: true, passive: false },
   );
 
-  window.addEventListener(
+  document.addEventListener(
     "keydown",
     (e: KeyboardEvent) => {
       if (rightAltPressed) {
@@ -226,6 +230,49 @@ function initKeyListeners() {
   );
 }
 
+function initTouchListeners() {
+  let touchHoldTimer: ReturnType<typeof setTimeout> | null = null;
+  let isOverlayVisibleFromTouch = false;
+
+  document.addEventListener(
+    "touchstart",
+    (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        if (!touchHoldTimer) {
+          touchHoldTimer = setTimeout(() => {
+            isOverlayVisibleFromTouch = true;
+            const showLong = e.touches.length >= 3;
+            OverlayController.toggleVisibility(true, showLong);
+          }, 800); // 800ms hold
+        }
+      }
+    },
+    { capture: true, passive: true },
+  );
+
+  const resetTouches = (e: TouchEvent) => {
+    if (e.touches.length < 2) {
+      if (touchHoldTimer) {
+        clearTimeout(touchHoldTimer);
+        touchHoldTimer = null;
+      }
+      if (isOverlayVisibleFromTouch) {
+        isOverlayVisibleFromTouch = false;
+        OverlayController.toggleVisibility(false, false);
+      }
+    }
+  };
+
+  document.addEventListener("touchend", resetTouches, {
+    capture: true,
+    passive: true,
+  });
+  document.addEventListener("touchcancel", resetTouches, {
+    capture: true,
+    passive: true,
+  });
+}
+
 // Initialization
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", extractAndFetch);
@@ -233,6 +280,7 @@ if (document.readyState === "loading") {
   extractAndFetch();
 }
 initKeyListeners();
+initTouchListeners();
 
 if (window === window.top) {
   window.addEventListener("message", (event) => {

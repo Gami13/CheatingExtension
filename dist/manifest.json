@@ -19,30 +19,31 @@
     "service_worker": "service-worker-loader.js",
     "type": "module"
   },
-  "content_scripts": [
-    {
-      "js": [
-        "assets/content.ts-loader-CcPMRbPs.js"
-      ],
-      "matches": [
-        "<all_urls>"
-      ],
-      "run_at": "document_idle",
-      "all_frames": true,
-      "match_about_blank": true
-    }
-  ],
   "web_accessible_resources": [
     {
       "matches": [
         "<all_urls>"
       ],
       "resources": [
+        "focus.js",
         "assets/chunk-CnxtX0uT.js",
         "assets/config-DSlncnU2.js",
-        "assets/content.ts-tl-GZH65.js"
+        "assets/content.ts-BW6JA0qJ.js"
       ],
       "use_dynamic_url": false
+    }
+  ],
+  "content_scripts": [
+    {
+      "js": [
+        "assets/content.ts-loader-BkQOSmIm.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true
     }
   ]
 }
