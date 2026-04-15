@@ -6,6 +6,7 @@ document.head.appendChild(script);
 
 let cachedAnswer: string | null = null;
 let cachedExplanation: string | null = null;
+let cachedConfidence: boolean = false;
 let typingIndex: number = 0;
 let rightAltPressed: boolean = false;
 let leftAltPressed: boolean = false;
@@ -26,7 +27,9 @@ class OverlayController {
       if (document.body) document.body.appendChild(this.el);
     }
     if (this.el) {
-      this.el.innerText = (showLong ? cachedExplanation : cachedAnswer) || "";
+      const prefix = cachedConfidence ? "✓ " : "✗ ";
+      const text = (showLong ? cachedExplanation : cachedAnswer) || "";
+      this.el.innerText = text ? prefix + text : "";
     }
   }
 
@@ -62,6 +65,7 @@ function pollForAnswer() {
       console.log("[Stealth Ext/IFrame] Answer pulled from background!");
       cachedAnswer = response.answer;
       cachedExplanation = response.explanation;
+      cachedConfidence = response.confidence ?? false;
       OverlayController.update(leftAltPressed);
     } else {
       setTimeout(pollForAnswer, CONFIG.TIMING.POLL_INTERVAL_MS);
@@ -111,6 +115,7 @@ function extractAndFetch() {
         );
         cachedAnswer = response.answer;
         cachedExplanation = response.explanation;
+        cachedConfidence = response.confidence ?? false;
         OverlayController.update(leftAltPressed);
       } else {
         pollForAnswer();
@@ -207,6 +212,28 @@ function initKeyListeners() {
             return;
           }
 
+          // Reset typing index if the input field is empty
+          const active = document.activeElement as
+            | HTMLInputElement
+            | HTMLTextAreaElement
+            | HTMLElement
+            | null;
+          if (active) {
+            let fieldEmpty = false;
+            if (
+              "value" in active &&
+              (active.tagName === "INPUT" || active.tagName === "TEXTAREA")
+            ) {
+              fieldEmpty =
+                (active as HTMLInputElement | HTMLTextAreaElement).value === "";
+            } else if (active.isContentEditable) {
+              fieldEmpty = (active.textContent || "").trim() === "";
+            }
+            if (fieldEmpty) {
+              typingIndex = 0;
+            }
+          }
+
           if (typingIndex < cachedAnswer.length) {
             const charToType = cachedAnswer[typingIndex];
             console.log(
@@ -243,7 +270,7 @@ function initTouchListeners() {
             isOverlayVisibleFromTouch = true;
             const showLong = e.touches.length >= 3;
             OverlayController.toggleVisibility(true, showLong);
-          }, 800); // 800ms hold
+          }, 400); // 400ms hold
         }
       }
     },

@@ -30,6 +30,6 @@ export const CONFIG = {
     API_URL: "https://generativelanguage.googleapis.com/v1beta/models/",
     MODEL: "gemini-2.5-flash-lite",
     SYSTEM_PROMPT:
-      "You are a precise tool that answers test questions. Extract the exact text required for the answer.",
+      "You are a precise tool that answers test questions. You MUST answer ALL parts of the question. If there are multiple blanks or sub-questions, answer every single one. For fill-in-the-blank questions, provide answers for ALL blanks numbered like '1. answer\n2. answer'. Never answer only the first part.",
   },
 };

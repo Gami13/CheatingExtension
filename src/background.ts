@@ -3,6 +3,7 @@ import { CONFIG } from "./config";
 interface CachedContent {
   answer: string;
   explanation: string;
+  confidence: boolean;
 }
 
 const tabAnswers: { [tabId: number]: CachedContent } = {};
@@ -18,9 +19,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   }
 });
 
-async function fetchGeminiAnswer(questionText: string, apiKey: string): Promise<CachedContent | null> {
+async function fetchGeminiAnswer(
+  questionText: string,
+  apiKey: string,
+): Promise<CachedContent | null> {
   const url = `${CONFIG.GEMINI.API_URL}${CONFIG.GEMINI.MODEL}:generateContent?key=${apiKey}`;
-  
+
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -36,14 +40,20 @@ async function fetchGeminiAnswer(questionText: string, apiKey: string): Promise<
           properties: {
             answer: {
               type: "STRING",
-              description: "The exact short text to type as the answer.",
+              description: "The complete answer text to type.",
             },
             explanation: {
               type: "STRING",
-              description: "A detailed explanation of why the answer is correct.",
+              description:
+                "A detailed explanation of why the answer is correct.",
+            },
+            confidence: {
+              type: "BOOLEAN",
+              description:
+                "True if you are very confident in the answer, false if you are unsure or guessing.",
             },
           },
-          required: ["answer", "explanation"],
+          required: ["answer", "explanation", "confidence"],
         },
       },
     }),
@@ -53,7 +63,9 @@ async function fetchGeminiAnswer(questionText: string, apiKey: string): Promise<
 
   if (!response.ok) {
     console.error("Gemini API Error Payload:", data);
-    throw new Error(`API Error ${response.status}: ${data.error?.message || response.statusText}`);
+    throw new Error(
+      `API Error ${response.status}: ${data.error?.message || response.statusText}`,
+    );
   }
 
   const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -64,7 +76,8 @@ async function fetchGeminiAnswer(questionText: string, apiKey: string): Promise<
     if (parsed.answer && parsed.explanation) {
       return {
         answer: parsed.answer.trim(),
-        explanation: parsed.explanation.trim()
+        explanation: parsed.explanation.trim(),
+        confidence: parsed.confidence === true,
       };
     }
     return null;
@@ -78,9 +91,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getAnswer") {
     const tabId = sender.tab?.id;
     if (tabId && tabAnswers[tabId]) {
-      sendResponse({ answer: tabAnswers[tabId].answer, explanation: tabAnswers[tabId].explanation });
+      sendResponse({
+        answer: tabAnswers[tabId].answer,
+        explanation: tabAnswers[tabId].explanation,
+        confidence: tabAnswers[tabId].confidence,
+      });
     } else {
-      sendResponse({ answer: null, explanation: null });
+      sendResponse({ answer: null, explanation: null, confidence: false });
     }
     return false;
   }
@@ -108,15 +125,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const content = await fetchGeminiAnswer(questionText, apiKey);
         if (content) {
           tabAnswers[tabId] = content;
-          sendResponse({ answer: content.answer, explanation: content.explanation, error: null });
+          sendResponse({
+            answer: content.answer,
+            explanation: content.explanation,
+            confidence: content.confidence,
+            error: null,
+          });
         } else {
-          sendResponse({ answer: null, explanation: null, error: "Empty response from API." });
+          sendResponse({
+            answer: null,
+            explanation: null,
+            confidence: false,
+            error: "Empty response from API.",
+          });
         }
       } catch (error: any) {
         console.error("Gemini API Error:", error);
         sendResponse({
           answer: null,
           explanation: null,
+          confidence: false,
           error: error.message || "Error communicating with API.",
         });
       }

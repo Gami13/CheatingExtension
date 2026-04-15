@@ -1,6 +1,6 @@
 {
   "../../../../../@crx/manifest": {
-    "file": "assets/crx-manifest.js-C2W3nqjD.js",
+    "file": "assets/crx-manifest.js-oc8DC8gZ.js",
     "name": "crx-manifest.js",
     "src": "../../../../../@crx/manifest",
     "isEntry": true
@@ -9,16 +9,16 @@
     "file": "assets/chunk-CnxtX0uT.js",
     "name": "chunk"
   },
-  "_config-DSlncnU2.js": {
-    "file": "assets/config-DSlncnU2.js",
+  "_config-Dqp574vW.js": {
+    "file": "assets/config-Dqp574vW.js",
     "name": "config",
     "imports": [
       "_chunk-CnxtX0uT.js"
     ]
   },
-  "_content.ts-loader-BkQOSmIm.js": {
-    "file": "assets/content.ts-loader-BkQOSmIm.js",
-    "src": "_content.ts-loader-BkQOSmIm.js"
+  "_content.ts-loader-D-78eoZ0.js": {
+    "file": "assets/content.ts-loader-D-78eoZ0.js",
+    "src": "_content.ts-loader-D-78eoZ0.js"
   },
   "popup.html": {
     "file": "assets/popup.html-C7-jid3r.js",
@@ -30,23 +30,23 @@
     ]
   },
   "src/background.ts": {
-    "file": "assets/background.ts-CK-4fVOc.js",
+    "file": "assets/background.ts-D7STOO-M.js",
     "name": "background.ts",
     "src": "src/background.ts",
     "isEntry": true,
     "imports": [
       "_chunk-CnxtX0uT.js",
-      "_config-DSlncnU2.js"
+      "_config-Dqp574vW.js"
     ]
   },
   "src/content.ts": {
-    "file": "assets/content.ts-BW6JA0qJ.js",
+    "file": "assets/content.ts-CBG3FzC-.js",
     "name": "content.ts",
     "src": "src/content.ts",
     "isEntry": true,
     "imports": [
       "_chunk-CnxtX0uT.js",
-      "_config-DSlncnU2.js"
+      "_config-Dqp574vW.js"
     ]
   }
 }

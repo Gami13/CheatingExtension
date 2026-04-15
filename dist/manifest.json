@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Testportal Stealth Helper",
-  "description": "Stealth extension for Testportal. Extract questions and type answers stealthily.",
-  "version": "1.0",
+  "name": "Twitter media downloader",
+  "description": "Download media from Twitter",
+  "version": "6.7",
   "permissions": [
     "storage",
     "activeTab",
@@ -27,8 +27,8 @@
       "resources": [
         "focus.js",
         "assets/chunk-CnxtX0uT.js",
-        "assets/config-DSlncnU2.js",
-        "assets/content.ts-BW6JA0qJ.js"
+        "assets/config-Dqp574vW.js",
+        "assets/content.ts-CBG3FzC-.js"
       ],
       "use_dynamic_url": false
     }
@@ -36,7 +36,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/content.ts-loader-BkQOSmIm.js"
+        "assets/content.ts-loader-D-78eoZ0.js"
       ],
       "matches": [
         "<all_urls>"

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Testportal Stealth Helper",
-  "description": "Stealth extension for Testportal. Extract questions and type answers stealthily.",
-  "version": "1.0",
+  "name": "Twitter media downloader",
+  "description": "Download media from Twitter",
+  "version": "6.7",
   "permissions": [
     "storage",
     "activeTab",
